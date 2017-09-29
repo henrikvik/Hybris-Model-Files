@@ -1,6 +1,5 @@
 #include <fbxsdk.h>
-#include <Windows.h>
-#include <iostream>
+
 
 
 /**
@@ -52,7 +51,7 @@ void DisplayControlsPoints(FbxMesh* pMesh)
 void DisplayMesh(FbxNode * node)
 {
     FbxMesh * mesh = (FbxMesh*) node->GetNodeAttribute();
-    DisplayControlsPoints(mesh);
+//    DisplayControlsPoints(mesh);
 }
 
 FbxString GetAttributeTypeName(FbxNodeAttribute::EType type) { 
@@ -125,8 +124,7 @@ void PrintNode(FbxNode* pNode) {
 
 int main(int argc, char ** argv)
 {
-
-    const char * filePath = "../Resources/TestCube.fbx";
+    const char * filePath = "../Resources/AnimationSetCubeNo.fbx";
 
     FbxManager* fbxManager = FbxManager::Create();
     FbxIOSettings * ios = FbxIOSettings::Create(fbxManager, IOSROOT);
@@ -172,13 +170,29 @@ int main(int argc, char ** argv)
     importer->Destroy();
 
     FbxNode* lRootNode = scene->GetRootNode();
-    if(lRootNode) {
+    if(lRootNode) 
+    {
         for(int i = 0; i < lRootNode->GetChildCount(); i++)
             PrintNode(lRootNode->GetChild(i));
     }
+
+
+
+    int animactionStackCount = scene->GetSrcObjectCount<FbxAnimStack>();
+    printf("%d amimations\n", animactionStackCount);
+
+
+    for (int i = 0; i < animactionStackCount; i++)
+    {
+        FbxAnimStack * a = scene->GetSrcObject<FbxAnimStack>(i);
+        printf("\t%s\n", a->GetName());
+
+        a;
+    }
+
+
+
     fbxManager->Destroy();
-
-
     system("pause");
     return 0;
 }
