@@ -187,7 +187,13 @@ int main(int argc, char ** argv)
         FbxAnimStack * a = scene->GetSrcObject<FbxAnimStack>(i);
         printf("\t%s\n", a->GetName());
 
-        a;
+        int animationLayerCount = a->GetMemberCount<FbxAnimLayer>();
+        printf("\tanimation layers %d\n", animationLayerCount);
+
+
+
+
+        
     }
 
 
