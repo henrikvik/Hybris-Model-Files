@@ -1,9 +1,17 @@
 #include <fbxsdk.h>
+#pragma comment(lib, "libfbxsdk-md.lib")
+
 #include <vector>
 #include <algorithm>
 #include <map>
 #include <fstream>
-#include "Hybris.h"
+
+#include <HybrisFile\Hybris.h>
+#include <HybrisFile\Read.h>
+#include <HybrisFile\Write.h>
+#include <HybrisFile\ToString.h>
+#pragma comment(lib, "Hybris.lib")
+
 
 #pragma region Fbx Convert Functions
 
@@ -18,7 +26,7 @@
         }
     }
 
-    void fbxcpy(Hybris::quaternion_t & dest, FbxQuaternion & src)
+    void fbxcpy(Hybris::vector4_t & dest, FbxQuaternion & src)
     {
         for (size_t i = 0; i < 4; i++)
         {
@@ -35,6 +43,30 @@
     }
 
     void fbxcpy(Hybris::vector4_t & dest, FbxVector4 & src)
+    {
+        for (size_t i = 0; i < 4; i++)
+        {
+            dest[i] = src[i];
+        }
+    }
+
+    void fbxcpy(Hybris::vector2_t & dest, FbxVector2 & src)
+    {
+        for (size_t i = 0; i < 2; i++)
+        {
+            dest[i] = src[i];
+        }
+    }
+
+    void fbxcpy(Hybris::ivector4_t & dest, size_t src[4])
+    {
+        for (size_t i = 0; i < 4; i++)
+        {
+            dest[i] = src[i];
+        }
+    }
+
+    void fbxcpy(Hybris::vector4_t & dest, float src[4])
     {
         for (size_t i = 0; i < 4; i++)
         {
@@ -146,6 +178,7 @@ typedef std::map<size_t, FbxAMatrix> JointTransforms_t;
 typedef std::map<size_t, JointTransforms_t> KeyFrames_t;
 typedef std::map<std::string, KeyFrames_t> Animations_t;
 
+std::vector<size_t> jointIds;
 SkeletonNodes_t getSkeletonNodes(FbxScene * scene)
 {
     SkeletonNodes_t skeletonNodes;
@@ -170,17 +203,17 @@ KeyFrames_t     getKeyFrames(SkeletonNodes_t const& skeletonNodes, FbxAnimLayer 
     {
         FbxNode * node = node_jointId.first;
 
-        FbxAnimCurve* localTranslationX = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
-        FbxAnimCurve* localTranslationY = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-        FbxAnimCurve* localTranslationZ = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+        FbxAnimCurve* localTranslationX = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
+        FbxAnimCurve* localTranslationY = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
+        FbxAnimCurve* localTranslationZ = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
 
-        FbxAnimCurve* localRotationX = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
-        FbxAnimCurve* localRotationY = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-        FbxAnimCurve* localRotationZ = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+        FbxAnimCurve* localRotationX = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
+        FbxAnimCurve* localRotationY = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
+        FbxAnimCurve* localRotationZ = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
 
-        FbxAnimCurve* localScaleX = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
-        FbxAnimCurve* localScaleY = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-        FbxAnimCurve* localScaleZ = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+        FbxAnimCurve* localScaleX = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
+        FbxAnimCurve* localScaleY = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
+        FbxAnimCurve* localScaleZ = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
 
         for (size_t i = 0, keyCount = localTranslationX->KeyGetCount(); i < keyCount; i++)
         {
@@ -200,7 +233,9 @@ KeyFrames_t     getKeyFrames(SkeletonNodes_t const& skeletonNodes, FbxAnimLayer 
                 localScaleZ->KeyGetValue(i)
             };
 
+            
             FbxAMatrix localTransform; localTransform.SetTRS(localTranslation, localRotation, localScale);
+
             FbxAMatrix parentGlobalTransform;
 
             FbxNode * parent = node->GetParent();
@@ -223,10 +258,14 @@ Animations_t    getAnimations(FbxScene * scene, SkeletonNodes_t & skeletonNodes)
 
     for (FbxAnimStack * animStack : getSrcObjects<FbxAnimStack>(scene))
     {
-        auto animLayers = getMembers<FbxAnimLayer>(animStack);
-        if (animLayers.size() > 1) throw "cant handle more than 1 layer";
-
-        animations.insert_or_assign(animStack->GetName(), getKeyFrames(skeletonNodes, animLayers[0]));
+        for (FbxAnimLayer * animLayer : getMembers<FbxAnimLayer>(animStack))
+        {
+            const char * name = animLayer->GetName();
+            if (strcmp(name, "BaseLayer") != 0)
+            {
+                animations.insert_or_assign(name, getKeyFrames(skeletonNodes, animLayer));
+            }
+        }
     }
 
     return animations;
@@ -261,7 +300,9 @@ MeshNodes_t getMeshNodes(FbxScene * scene)
         FbxNode * node = scene->GetNode(i);
         if (node->GetMesh())
         {
-            meshNodes[node] = currentId++;
+            auto ptr_bool = meshNodes.insert({node, currentId});
+            currentId += ptr_bool.second;
+
         }
     }
 
@@ -296,7 +337,8 @@ JointWeights_t getJointWeights(FbxMesh * mesh, SkeletonNodes_t & skeletonNodes)
 
     for (auto & jointWeight : jointWeights)
     {
-        std::sort(jointWeight.second.begin(), jointWeight.second.end(), [](JointWeight_t & a, JointWeight_t & b) {
+        std::sort(jointWeight.second.begin(), jointWeight.second.end(), [](JointWeight_t & a, JointWeight_t & b) 
+        {
             return a.second > b.second;
         });
 
@@ -333,21 +375,10 @@ MeshData_t getMeshData(FbxMesh * mesh, SkeletonNodes_t & skeletonNodes)
             vertex.jointWeights[i] = jointWeights[cIndex][i].second / jointWeightsSum;
         }
 
-        printf("Vertex %d\n", cIndex);
-        printf("  Position\t");     PRINTFVEC3F(vertex.position);     printf("\n");
-        printf("  Normal\t");       PRINTFVEC3F(vertex.normal);       printf("\n");
-        printf("  Binormal\t");     PRINTFVEC3F(vertex.binormal);     printf("\n");
-        printf("  Tangent\t");      PRINTFVEC3F(vertex.tangent);      printf("\n");
-        printf("  UV\t\t");         PRINTFVEC2F(vertex.uv);           printf("\n");
-        printf("  JointIds\t");     PRINTFVEC4I(vertex.jointIds);     printf("\n");
-        printf("  JointWeights\t"); PRINTFVEC4F(vertex.jointWeights); printf("\n");
-
         vertexData.push_back(vertex);
     }
 
-
     std::vector<size_t> indexData;
-    printf("\nIndex Buffer\n  ");
     size_t polyCount = mesh->GetPolygonCount();
     for (size_t polyIndex = 0; polyIndex < polyCount; polyIndex++)
     {
@@ -362,7 +393,6 @@ MeshData_t getMeshData(FbxMesh * mesh, SkeletonNodes_t & skeletonNodes)
         for (size_t vertexIndex = 0; vertexIndex < polySize; vertexIndex++)
         {
             size_t index = mesh->GetPolygonVertex(polyIndex, vertexIndex);
-            printf("%d ", index);
             indexData.push_back(index);
         }
     }
@@ -434,16 +464,9 @@ Hybris::List<Hybris::Joint>     makeHybrisJointList(SkeletonNodes_t & skeletonNo
 
         Hybris::Joint hJoint = {};
         hJoint.id = jointId;
-        hJoint.parentId = -1;
 
         FbxAMatrix invBindTransform = node->EvaluateGlobalTransform().Inverse();
         fbxcpy(hJoint.invBindTransform, invBindTransform);
-
-        FbxNode * parent = node->GetParent();
-        if (parent->GetSkeleton())
-        {
-            hJoint.parentId = skeletonNodes[parent];
-        }
 
         hJoints.push_back(hJoint);
     }
@@ -452,16 +475,61 @@ Hybris::List<Hybris::Joint>     makeHybrisJointList(SkeletonNodes_t & skeletonNo
     hJointList = hJoints;
     return hJointList;
 }
+Hybris::Mesh                    makeHybrisMesh(MeshData_t & meshData)
+{
+    std::vector<Hybris::Vertex> vertices;
+    for (auto & vertexData : meshData.first)
+    {
+        Hybris::Vertex vertex = {};
+        fbxcpy(vertex.position     , vertexData.position    );
+        fbxcpy(vertex.normal       , vertexData.normal      );
+        fbxcpy(vertex.binormal     , vertexData.binormal    );
+        fbxcpy(vertex.tangent      , vertexData.tangent     );
+        fbxcpy(vertex.uv           , vertexData.uv          );
+        fbxcpy(vertex.jointIds     , vertexData.jointIds    );
+        fbxcpy(vertex.jointWeights , vertexData.jointWeights);
+        
+        vertices.push_back(vertex);
+    }
+
+    std::vector<Hybris::Index> indices;
+    for (auto & indexData : meshData.second)
+    {
+        Hybris::Index index = {};
+        index.vertexId = indexData;
+
+        indices.push_back(index);
+    }
+    
+
+    Hybris::Mesh hMesh = {};
+    hMesh.vertices = vertices;
+    hMesh.indices = indices;
+    return hMesh;
+}
+
+Hybris::Skeleton makeHybrisSkeleton(SkeletonNodes_t & skeletonNodes, Animations_t & animations)
+{
+    Hybris::Skeleton skeleton = {};
+    skeleton.joints = makeHybrisJointList(skeletonNodes);
+    skeleton.animations = makeHybrisAnimationList(animations);
+    return skeleton;
+}
+
 Hybris::File makeHybrisFile(FbxScene * scene)
 {
     SkeletonNodes_t skeletonNodes = getSkeletonNodes(scene);
-    Animations_t animations = getAnimations(scene, skeletonNodes);
+    MeshNodes_t meshNodes = getMeshNodes(scene);
 
+    if (meshNodes.size() != 1) { throw "File has to have exactly 1 mesh."; }
+    FbxMesh * mesh = meshNodes.begin()->first->GetMesh();
+
+    Animations_t animations = getAnimations(scene, skeletonNodes);
+    MeshData_t meshData = getMeshData(mesh, skeletonNodes);
 
     Hybris::File hFile = {};
-    hFile.joints = makeHybrisJointList(skeletonNodes);
-    hFile.animations = makeHybrisAnimationList(animations);
-
+    hFile.skeleton = makeHybrisSkeleton(skeletonNodes, animations);
+    hFile.mesh = makeHybrisMesh(meshData);
     return hFile;
 }
 #pragma endregion
@@ -486,8 +554,8 @@ int main(int argc, char ** argv)
     default:
         //printf("Invalid amout of arguments.\n");
         //exit(1);
-        inFilePath = "../Resources/FlappyPlane.fbx";
-        outFilePath = "../Resources/FlappyPlane.hyb";
+        inFilePath = "../Resources/BakedTest.fbx";
+        outFilePath = "../Resources/BakedTest.hyb";
         break;
     }
 
@@ -497,25 +565,24 @@ int main(int argc, char ** argv)
     {
         FbxScene * scene = importFbxScene(fbxManager, inFilePath.c_str());
 
-        auto meshNodes = getMeshNodes(scene);
-        auto skeletonNodes = getSkeletonNodes(scene);
-
-        for (auto & meshNode : meshNodes)
-        {
-            FbxMesh * mesh = meshNode.first->GetMesh();
-
-
-
-            
-        }
-
-
-
         Hybris::File hybrisFile = makeHybrisFile(scene);
-        Hybris::writeToFile(outFilePath.c_str(), hybrisFile);
+
+        std::ofstream ofile(outFilePath.c_str(), std::ios::binary | std::ios::trunc);
+        Hybris::write(ofile, hybrisFile);
+        ofile.close();
+
+        Hybris::File loadedFile = {};
+        std::ifstream ifile(outFilePath.c_str(), std::ios::binary);
+        Hybris::read(ifile, loadedFile);
+        ofile.close();
+
+
+        std::string txtFilePath = outFilePath.replace(outFilePath.length() - 4, 4, ".txt");
+        std::ofstream strFile(txtFilePath.c_str(), std::ios::trunc);
+        strFile << Hybris::toString(loadedFile).c_str();
+        strFile.close();
 
     }
     fbxManager->Destroy();
-
     return 0;
 }

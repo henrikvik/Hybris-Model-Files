@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HybrisFile", "HybrisFile\HybrisFile.vcxproj", "{20E2DAF6-F972-4040-BEEB-16C9B5527AA3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hybris", "HybrisFile\HybrisFile.vcxproj", "{20E2DAF6-F972-4040-BEEB-16C9B5527AA3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FbxToHybris", "FbxToHybris\FbxToHybris.vcxproj", "{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{20E2DAF6-F972-4040-BEEB-16C9B5527AA3} = {20E2DAF6-F972-4040-BEEB-16C9B5527AA3}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +26,19 @@ Global
 		{20E2DAF6-F972-4040-BEEB-16C9B5527AA3}.Release|x64.Build.0 = Release|x64
 		{20E2DAF6-F972-4040-BEEB-16C9B5527AA3}.Release|x86.ActiveCfg = Release|Win32
 		{20E2DAF6-F972-4040-BEEB-16C9B5527AA3}.Release|x86.Build.0 = Release|Win32
+		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Debug|x64.ActiveCfg = Debug|x64
+		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Debug|x64.Build.0 = Debug|x64
+		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Debug|x86.ActiveCfg = Debug|Win32
+		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Debug|x86.Build.0 = Debug|Win32
+		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Release|x64.ActiveCfg = Release|x64
+		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Release|x64.Build.0 = Release|x64
+		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Release|x86.ActiveCfg = Release|Win32
+		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FAA5E59E-5C63-44B8-B7AE-0EE836ABF382}
 	EndGlobalSection
 EndGlobal
