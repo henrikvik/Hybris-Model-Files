@@ -20,32 +20,32 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}</ProjectGuid>
-    <RootNamespace>FbxToHybris</RootNamespace>
+    <ProjectGuid>{161EA044-B9F2-4506-A747-EA70489077EB}</ProjectGuid>
+    <RootNamespace>MayaPlugin</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -70,35 +70,42 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\include;$(SolutionDir);$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\lib\vs2015\$(PlatformShortName)\$(Configuration)\;$(SolutionDir)build\Hybris\bin\$(PlatformShortName)\$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>C:\Maya 2018 DEVKIT\devkitBase\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Maya 2018 DEVKIT\devkitBase\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SoultionDir)build\$(ProjectName)\$(PlatformNameShort)\$(Configuration)\</OutDir>
+    <IntDir>$(SoultionDir)temp\$(ProjectName)\$(PlatformNameShort)\$(Configuration)\</IntDir>
+    <TargetName>HybrisLoader</TargetName>
+    <TargetExt>.mll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\include;$(SolutionDir)build\Hybris\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\lib\vs2015\$(PlatformShortName)\$(Configuration)\;$(SolutionDir)build\Hybris\bin\$(PlatformShortName)\$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>C:\Maya 2018 DEVKIT\devkitBase\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Maya 2018 DEVKIT\devkitBase\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SoultionDir)build\$(ProjectName)\$(PlatformNameShort)\$(Configuration)\</OutDir>
+    <IntDir>$(SoultionDir)temp\$(ProjectName)\$(PlatformNameShort)\$(Configuration)\</IntDir>
+    <TargetName>HybrisLoader</TargetName>
+    <TargetExt>.mll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\include;$(SolutionDir);$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\lib\vs2015\$(PlatformShortName)\$(Configuration)\;$(SolutionDir)build\Hybris\bin\$(PlatformShortName)\$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>C:\Maya 2018 DEVKIT\devkitBase\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Maya 2018 DEVKIT\devkitBase\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SoultionDir)build\$(ProjectName)\$(PlatformNameShort)\$(Configuration)\</OutDir>
+    <IntDir>$(SoultionDir)temp\$(ProjectName)\$(PlatformNameShort)\$(Configuration)\</IntDir>
+    <TargetName>HybrisLoader</TargetName>
+    <TargetExt>.mll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\include;$(SolutionDir)build\Hybris\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\lib\vs2015\$(PlatformShortName)\$(Configuration)\;$(SolutionDir)build\Hybris\bin\$(PlatformShortName)\$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>C:\Maya 2018 DEVKIT\devkitBase\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Maya 2018 DEVKIT\devkitBase\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SoultionDir)build\$(ProjectName)\$(PlatformNameShort)\$(Configuration)\</OutDir>
+    <IntDir>$(SoultionDir)temp\$(ProjectName)\$(PlatformNameShort)\$(Configuration)\</IntDir>
+    <TargetName>HybrisLoader</TargetName>
+    <TargetExt>.mll</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -106,7 +113,6 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -116,7 +122,6 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -130,7 +135,6 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -138,7 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FbxConverter.cpp" />
+    <ClCompile Include="PluginMain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

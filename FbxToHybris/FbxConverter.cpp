@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <set>
 #include <fstream>
 
 #include <HybrisFile\Hybris.h>
@@ -173,10 +174,20 @@
 
 
 #pragma region Fbx Animation Import
+
+
 typedef std::map<FbxNode*, size_t> SkeletonNodes_t;
 typedef std::map<size_t, FbxAMatrix> JointTransforms_t;
 typedef std::map<size_t, JointTransforms_t> KeyFrames_t;
 typedef std::map<std::string, KeyFrames_t> Animations_t;
+
+struct OrderByJointId
+{
+    bool operator()(SkeletonNodes_t::value_type const& a, SkeletonNodes_t::value_type const& b) {
+        return a.second < b.second;
+    };
+};
+typedef std::set<SkeletonNodes_t::value_type, OrderByJointId> SortedSkeletonNodes_t;
 
 std::vector<size_t> jointIds;
 SkeletonNodes_t getSkeletonNodes(FbxScene * scene)
@@ -193,27 +204,31 @@ SkeletonNodes_t getSkeletonNodes(FbxScene * scene)
         }
     }
 
+
     return skeletonNodes;
 }
 KeyFrames_t     getKeyFrames(SkeletonNodes_t const& skeletonNodes, FbxAnimLayer * animLayer)
 {
     KeyFrames_t keyFrames;
 
-    for (auto & node_jointId : skeletonNodes)
+    SortedSkeletonNodes_t sortedSkeletonNodes(skeletonNodes.begin(), skeletonNodes.end());
+    for (auto & node_jointId : sortedSkeletonNodes)
     {
         FbxNode * node = node_jointId.first;
+        size_t    jointId = node_jointId.second;
+        FbxNode * parent = node->GetParent();
 
-        FbxAnimCurve* localTranslationX = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
-        FbxAnimCurve* localTranslationY = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
-        FbxAnimCurve* localTranslationZ = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
+        FbxAnimCurve* localTranslationX = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
+        FbxAnimCurve* localTranslationY = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+        FbxAnimCurve* localTranslationZ = node->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 
-        FbxAnimCurve* localRotationX = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
-        FbxAnimCurve* localRotationY = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
-        FbxAnimCurve* localRotationZ = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
+        FbxAnimCurve* localRotationX = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
+        FbxAnimCurve* localRotationY = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+        FbxAnimCurve* localRotationZ = node->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 
-        FbxAnimCurve* localScaleX = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
-        FbxAnimCurve* localScaleY = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
-        FbxAnimCurve* localScaleZ = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
+        FbxAnimCurve* localScaleX = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
+        FbxAnimCurve* localScaleY = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+        FbxAnimCurve* localScaleZ = node->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 
         for (size_t i = 0, keyCount = localTranslationX->KeyGetCount(); i < keyCount; i++)
         {
@@ -233,20 +248,22 @@ KeyFrames_t     getKeyFrames(SkeletonNodes_t const& skeletonNodes, FbxAnimLayer 
                 localScaleZ->KeyGetValue(i)
             };
 
-            
-            FbxAMatrix localTransform; localTransform.SetTRS(localTranslation, localRotation, localScale);
 
-            FbxAMatrix parentGlobalTransform;
+            FbxAMatrix animTransform = FbxAMatrix(localTranslation, localRotation, localScale);
+            FbxAMatrix animTranslate; animTranslate.SetT(localTranslation);
+            FbxAMatrix animRotate; animRotate.SetR(localRotation);
+            FbxAMatrix animScale; animScale.SetS(localScale);
 
-            FbxNode * parent = node->GetParent();
+            FbxAMatrix parentTransform;
+
             if (parent->GetSkeleton())
             {
                 size_t parentId = skeletonNodes.at(parent);
-                parentGlobalTransform = keyFrames[i][parentId];
+                parentTransform = keyFrames.at(i).at(parentId);
             }
 
-            size_t jointId = node_jointId.second;
-            keyFrames[i][jointId] = parentGlobalTransform * localTransform;
+            FbxAMatrix localTransform(node->LclTranslation.Get(), node->LclRotation.Get(), node->LclScaling.Get());
+            keyFrames[i][jointId] = animRotate;
         }
     }
 
@@ -408,6 +425,8 @@ Hybris::JointTransform          makeHybrisJointTransform(size_t jointId, FbxAMat
 {
     Hybris::JointTransform hJointTransform = {};
 
+    
+
     hJointTransform.jointId = jointId;
     fbxcpy(hJointTransform.translation, transform.GetT());
     fbxcpy(hJointTransform.rotation,    transform.GetQ());
@@ -456,8 +475,10 @@ Hybris::List<Hybris::Animation> makeHybrisAnimationList(Animations_t animations)
 }
 Hybris::List<Hybris::Joint>     makeHybrisJointList(SkeletonNodes_t & skeletonNodes)
 {
+    std::map <FbxNode*, FbxAMatrix> globalTransforms;
     std::vector<Hybris::Joint> hJoints;
-    for (auto & node_jointId : skeletonNodes)
+
+    for (auto & node_jointId : SortedSkeletonNodes_t(skeletonNodes.begin(), skeletonNodes.end()))
     {
         FbxNode * node = node_jointId.first;
         size_t jointId = node_jointId.second;
@@ -465,8 +486,21 @@ Hybris::List<Hybris::Joint>     makeHybrisJointList(SkeletonNodes_t & skeletonNo
         Hybris::Joint hJoint = {};
         hJoint.id = jointId;
 
-        FbxAMatrix invBindTransform = node->EvaluateGlobalTransform().Inverse();
-        fbxcpy(hJoint.invBindTransform, invBindTransform);
+        FbxDouble3 translation = node->LclTranslation.Get();
+        FbxDouble3 rotation = node->LclRotation.Get();
+        FbxDouble3 scale = node->LclScaling.Get();
+
+        FbxAMatrix localTransform(translation, rotation, scale);
+        FbxAMatrix parentGlobalTransform;
+
+        FbxNode * parent = node->GetParent();
+        if (parent->GetSkeleton())
+        {
+            parentGlobalTransform = globalTransforms.at(parent);
+        }
+
+        globalTransforms[node] = parentGlobalTransform * localTransform;
+        fbxcpy(hJoint.invBindTransform, globalTransforms.at(node).Inverse());
 
         hJoints.push_back(hJoint);
     }
@@ -546,6 +580,7 @@ int main(int argc, char ** argv)
         outFilePath = argv[1];
         outFilePath.replace(outFilePath.length() - 4, 4, ".hyb");
         break;
+
     case 3:
         inFilePath = argv[1];
         outFilePath = argv[2];
@@ -554,8 +589,8 @@ int main(int argc, char ** argv)
     default:
         //printf("Invalid amout of arguments.\n");
         //exit(1);
-        inFilePath = "../Resources/BakedTest.fbx";
-        outFilePath = "../Resources/BakedTest.hyb";
+        inFilePath  = "../Resources/Cylinder.fbx";
+        outFilePath = "C:/Users/h/source/repos/DV1544-Stort-Spel/Engine/Resources/Animations/Cylinder.hyb";
         break;
     }
 
@@ -576,8 +611,7 @@ int main(int argc, char ** argv)
         Hybris::read(ifile, loadedFile);
         ofile.close();
 
-
-        std::string txtFilePath = outFilePath.replace(outFilePath.length() - 4, 4, ".txt");
+        std::string txtFilePath = outFilePath.replace(outFilePath.length() - 4, 6, ".json");
         std::ofstream strFile(txtFilePath.c_str(), std::ios::trunc);
         strFile << Hybris::toString(loadedFile).c_str();
         strFile.close();
