@@ -1,14 +1,30 @@
 #include "Write.h"
 
+
+
 void Hybris::write(std::ofstream & ofile, File & file)
 {
     write(ofile, file.mesh);
+    write(ofile, file.material);
     write(ofile, file.skeleton);
+}
+
+void Hybris::write(std::ofstream & ofile, Material & material)
+{
+    write(ofile, material.diffuseMap);
+    write(ofile, material.normalMap);
+    write(ofile, material.specularMap);
+    write(ofile, material.glowMap);
+}
+
+void Hybris::write(std::ofstream & ofile, Texture & texture)
+{
+    write(ofile, texture.extension);
+    write(ofile, texture.data);
 }
 
 void Hybris::write(std::ofstream & ofile, Mesh & mesh)
 {
-    write(ofile, mesh.indices);
     write(ofile, mesh.vertices);
 }
 
@@ -37,6 +53,7 @@ void Hybris::write(std::ofstream & ofile, Index & index)
 void Hybris::write(std::ofstream & ofile, Animation & animation)
 {
     write(ofile, animation.name);
+    write(ofile, animation.duration);
     write(ofile, animation.keyFrames);
 }
 
@@ -113,4 +130,9 @@ void Hybris::write(std::ofstream & ofile, matrix4_t & matrix4)
 void Hybris::write(std::ofstream & ofile, ivector4_t & ivector4)
 {
     ofile.write((char*)ivector4, sizeof(ivector4));
+}
+
+void Hybris::write(std::ofstream & ofile, byte_t & byte)
+{
+    ofile.write((char*)&byte, sizeof(byte));
 }

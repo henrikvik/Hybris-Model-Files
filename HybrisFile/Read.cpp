@@ -3,12 +3,26 @@
 void Hybris::read(std::ifstream & ifile, File & file)
 {
     read(ifile, file.mesh);
+    read(ifile, file.material);
     read(ifile, file.skeleton);
+}
+
+void Hybris::read(std::ifstream & ifile, Material & material)
+{
+    read(ifile, material.diffuseMap);
+    read(ifile, material.normalMap);
+    read(ifile, material.specularMap);
+    read(ifile, material.glowMap);
+}
+
+void Hybris::read(std::ifstream & ifile, Texture & texture)
+{
+    read(ifile, texture.extension);
+    read(ifile, texture.data);
 }
 
 void Hybris::read(std::ifstream & ifile, Mesh & mesh)
 {
-    read(ifile, mesh.indices);
     read(ifile, mesh.vertices);
 }
 
@@ -37,6 +51,7 @@ void Hybris::read(std::ifstream & ifile, Index & index)
 void Hybris::read(std::ifstream & ifile, Animation & animation)
 {
     read(ifile, animation.name);
+    read(ifile, animation.duration);
     read(ifile, animation.keyFrames);
 }
 
@@ -113,4 +128,9 @@ void Hybris::read(std::ifstream & ifile, matrix4_t & matrix4)
 void Hybris::read(std::ifstream & ifile, ivector4_t & ivector4)
 {
     ifile.read((char*)ivector4, sizeof(ivector4));
+}
+
+void Hybris::read(std::ifstream & ifile, byte_t & byte)
+{
+    ifile.read((char*)&byte, sizeof(byte));
 }
