@@ -77,10 +77,23 @@ void Hybris::write(std::ofstream & ofile, Joint & joint)
     write(ofile, joint.invBindTransform);
 }
 
-void Hybris::write(std::ofstream & ofile, size_t & size)
-{
-    ofile.write((char*)&size, sizeof(size));
+void Hybris::write(std::ofstream & ofile, Hitbox & data)
+{    
+    write(ofile, data.position);
+    write(ofile, data.rotation);
+    write(ofile, data.halfSize);
 }
+
+void Hybris::write(std::ofstream & ofile, FileWithHitbox & data)
+{
+    write(ofile, (File)data);
+    write(ofile, data.hitboxes);
+}
+
+//void Hybris::write(std::ofstream & ofile, size_t & size)
+//{
+//    ofile.write((char*)&size, sizeof(size));
+//}
 
 void Hybris::write(std::ofstream & ofile, time_t & time)
 {

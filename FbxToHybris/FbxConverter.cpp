@@ -67,6 +67,14 @@ namespace fs = std::experimental::filesystem;
         }
     }
 
+    void fbxcpy(Hybris::vector3_t & dest, FbxDouble3& src)
+    {
+        for (size_t i = 0; i < 3; i++)
+        {
+            dest[i] = src[i];
+        }
+    }
+
     void fbxcpy(Hybris::vector2_t & dest, FbxVector2 & src)
     {
         for (size_t i = 0; i < 2; i++)
@@ -90,6 +98,23 @@ namespace fs = std::experimental::filesystem;
             dest[i] = src[i];
         }
     }
+
+    void cpy(Hybris::vector4_t & dest, float src[4])
+    {
+        for (size_t i = 0; i < 4; i++)
+        {
+            dest[i] = src[i];
+        }
+    }
+
+    void cpy(Hybris::vector3_t & dest, float src[3])
+    {
+        for (size_t i = 0; i < 3; i++)
+        {
+            dest[i] = src[i];
+        }
+    }
+
 
 
    
@@ -142,6 +167,17 @@ namespace fs = std::experimental::filesystem;
         return members;
     }
 
+    std::vector<FbxNode*> getNodes(FbxScene * scene)
+    {
+        std::vector<FbxNode*> nodes;
+
+        for (int i = 0; i < scene->GetNodeCount(); i++)
+        {
+            nodes.push_back(scene->GetNode(i));
+        }
+
+        return nodes;
+    }
 
 #define PRINTFVEC2F(vec)\
     {\
@@ -320,6 +356,7 @@ KeyFrames_t     getKeyFrames(SkeletonNodes_t const& skeletonNodes, FbxAnimLayer 
                 );
             }
             
+
             keyFrames[i].timeStamp = localTranslationX->KeyGetTime(i).GetSecondDouble();
             keyFrames[i].jointTransforms[jointId] = parentTransform * localTransform * animTransform;
         }
@@ -350,7 +387,7 @@ Animations_t    getAnimations(FbxScene * scene, SkeletonNodes_t & skeletonNodes)
 #pragma region Fbx Mesh Import
 typedef std::map<FbxNode*, size_t> MeshNodes_t;
 typedef std::pair<size_t, float> JointWeight_t;
-typedef std::map<size_t, std::vector<JointWeight_t>> JointWeights_t;
+typedef std::vector<std::vector<JointWeight_t>> JointWeights_t;
 struct Vertex
 {
     FbxVector4 position;
@@ -371,7 +408,7 @@ MeshNodes_t getMeshNodes(FbxScene * scene)
     for (int i = 0, nodeCount = scene->GetNodeCount(); i < nodeCount; i++)
     {
         FbxNode * node = scene->GetNode(i);
-        if (node->GetMesh())
+        if (node->GetMesh() && !node->FindProperty("Hitbox").IsValid())
         {
             auto ptr_bool = meshNodes.insert({node, currentId});
             currentId += ptr_bool.second;
@@ -416,22 +453,21 @@ FbxVector4 getNormal(FbxMesh * mesh, size_t controlPoint)
     return normals->GetDirectArray().GetAt(normalIndex);
 }
 
+
+
 FbxVector4 getBinormal(FbxMesh * mesh, size_t controlPoint)
 {
-    FbxGeometryElementBinormal * binormals;
-    size_t binormalIndex;
-
     if (mesh->GetElementBinormalCount() != 1)
     {
         throw std::runtime_error("Mesh needs to have exactly ONE Binormals container.");
     }
-
-    binormals = mesh->GetElementBinormal(0);
-
-    if (binormals->GetMappingMode() != FbxGeometryElement::eByPolygonVertex)
+    if (mesh->GetElementBinormal(0)->GetMappingMode() != FbxGeometryElement::eByPolygonVertex)
     {
         throw std::runtime_error("Binormals needs to be mapped per vertex.");
     }
+
+    FbxGeometryElementBinormal * binormals = mesh->GetElementBinormal(0);
+    size_t binormalIndex;
 
     switch (binormals->GetReferenceMode())
     {
@@ -452,20 +488,17 @@ FbxVector4 getBinormal(FbxMesh * mesh, size_t controlPoint)
 
 FbxVector4 getTangent(FbxMesh * mesh, size_t controlPoint)
 {
-    FbxGeometryElementTangent * tangents;
-    size_t tangentIndex;
-
     if (mesh->GetElementTangentCount() != 1)
     {
         throw std::runtime_error("Mesh needs to have exactly ONE Tangents container.");
     }
-
-    tangents = mesh->GetElementTangent(0);
-
-    if (tangents->GetMappingMode() != FbxGeometryElement::eByPolygonVertex)
+    if (mesh->GetElementTangent(0)->GetMappingMode() != FbxGeometryElement::eByPolygonVertex)
     {
         throw std::runtime_error("Tangents needs to be mapped per vertex.");
     }
+
+    FbxGeometryElementTangent * tangents = mesh->GetElementTangent(0);
+    size_t tangentIndex;
 
     switch (tangents->GetReferenceMode())
     {
@@ -520,7 +553,7 @@ FbxVector2 getUV(FbxMesh * mesh, size_t controlPoint)
 
 JointWeights_t getJointWeights(FbxMesh * mesh, SkeletonNodes_t & skeletonNodes)
 {
-    JointWeights_t jointWeights;
+    JointWeights_t jointWeights(mesh->GetControlPointsCount());
 
     FbxSkin * skin = (FbxSkin*)mesh->GetDeformer(0, FbxDeformer::eSkin);
     if (skin)
@@ -546,13 +579,13 @@ JointWeights_t getJointWeights(FbxMesh * mesh, SkeletonNodes_t & skeletonNodes)
 
     for (auto & jointWeight : jointWeights)
     {
-        std::sort(jointWeight.second.begin(), jointWeight.second.end(), [](JointWeight_t & a, JointWeight_t & b) 
+        std::sort(jointWeight.begin(), jointWeight.end(), [](JointWeight_t & a, JointWeight_t & b) 
         {
             return a.second > b.second;
         });
 
-        while (jointWeight.second.size() < 4) { jointWeight.second.push_back({}); }
-        while (jointWeight.second.size() > 4) { jointWeight.second.pop_back(); }
+        while (jointWeight.size() < 4) { jointWeight.push_back({}); }
+        while (jointWeight.size() > 4) { jointWeight.pop_back(); }
     }
 
     return jointWeights;
@@ -564,6 +597,7 @@ MeshData_t getMeshData(FbxMesh * mesh, SkeletonNodes_t & skeletonNodes)
     std::vector<Vertex> vertexData;
     
 
+    size_t vertexIndex = 0;
     for (size_t polyIndex = 0; polyIndex <  mesh->GetPolygonCount(); polyIndex++)
     {
         if (mesh->GetPolygonSize(polyIndex) != 3)
@@ -571,17 +605,19 @@ MeshData_t getMeshData(FbxMesh * mesh, SkeletonNodes_t & skeletonNodes)
             throw std::runtime_error("Mesh is not triangulated!");
         }
 
-        for (size_t vertexIndex = 0; vertexIndex < mesh->GetPolygonSize(polyIndex); vertexIndex++)
+        for (size_t polyVert = 0; polyVert < 3; polyVert++)
         {
             bool unmapped;
-            size_t cIndex = mesh->GetPolygonVertex(polyIndex, vertexIndex);
+            size_t cIndex = mesh->GetPolygonVertex(polyIndex, polyVert);
 
             Vertex vertex = {};
             vertex.position = mesh->GetControlPointAt(cIndex);
-            mesh->GetPolygonVertexNormal(polyIndex, vertexIndex, vertex.normal);
-            mesh->GetPolygonVertexUV(polyIndex, vertexIndex, "map1", vertex.uv, unmapped);
-            vertex.binormal = getBinormal(mesh, cIndex);
-            vertex.tangent  = getTangent(mesh, cIndex);
+            mesh->GetPolygonVertexNormal(polyIndex, polyVert, vertex.normal);
+            mesh->GetPolygonVertexUV(polyIndex, polyVert, "map1", vertex.uv, unmapped);
+            vertex.uv[1] = 1 - vertex.uv[1]; // Flip Y
+            
+            vertex.binormal = getBinormal(mesh, vertexIndex);
+            vertex.tangent  = getTangent(mesh, vertexIndex);
 
             float jointWeightsSum = 
                 jointWeights[cIndex][0].second +
@@ -596,6 +632,7 @@ MeshData_t getMeshData(FbxMesh * mesh, SkeletonNodes_t & skeletonNodes)
             }
 
             vertexData.push_back(vertex);
+            vertexIndex++;
         }
     }
 
@@ -814,6 +851,53 @@ Hybris::File makeHybrisFile(FbxScene * scene)
     hFile.material = makeHybrisMaterial(mesh);
     return hFile;
 }
+
+Hybris::List<Hybris::Hitbox> getHitboxes(FbxScene * scene)
+{
+    auto toHitbox = [](FbxNode * node) -> Hybris::Hitbox
+    {
+        FbxVector4 position = node->LclTranslation.Get();
+        FbxQuaternion rotation; rotation.ComposeSphericalXYZ(node->LclRotation.Get());
+        FbxVector4 halfSize = node->LclScaling.Get(); 
+        halfSize *= 0.5;
+
+        Hybris::Hitbox hitbox;
+        fbxcpy(hitbox.position, position);
+        fbxcpy(hitbox.rotation, rotation);
+        fbxcpy(hitbox.halfSize, halfSize);
+        return hitbox;
+    };
+    std::vector<Hybris::Hitbox> hitboxes;
+
+    for (FbxNode * node : getNodes(scene))
+    {
+        if (node->FindProperty("Hitbox").IsValid())
+            hitboxes.push_back(toHitbox(node));
+    }
+    
+    Hybris::List<Hybris::Hitbox> list; list = hitboxes;
+    return list;
+}
+
+Hybris::FileWithHitbox makeHybrisFileWithHitbox(FbxScene * scene)
+{
+    SkeletonNodes_t skeletonNodes = getSkeletonNodes(scene);
+    MeshNodes_t meshNodes = getMeshNodes(scene);
+
+    if (meshNodes.size() != 1) { throw "File has to have exactly 1 mesh."; }
+    FbxMesh * mesh = meshNodes.begin()->first->GetMesh();
+
+    Animations_t animations = getAnimations(scene, skeletonNodes);
+    MeshData_t meshData = getMeshData(mesh, skeletonNodes);
+
+    Hybris::FileWithHitbox hFile = {};
+    hFile.skeleton = makeHybrisSkeleton(skeletonNodes, animations);
+    hFile.mesh = makeHybrisMesh(meshData);
+    hFile.material = makeHybrisMaterial(mesh);
+    hFile.hitboxes = getHitboxes(scene);
+
+    return hFile;
+}
 #pragma endregion
 
 int main(int argc, char ** argv)
@@ -835,10 +919,9 @@ int main(int argc, char ** argv)
         break;
 
     default:
-        //printf("Invalid amout of arguments.\n");
-        //exit(1);
-        inFilePath  = "../Resources/Cube.fbx";
-        outFilePath = "C:/Users/h/source/repos/DV1544-Stort-Spel/Resources/Models/Cube.hyb";
+        inFilePath  = R"(C:\Users\h\source\repos\Hybris-Model-Files\Resources\HouseV4.fbx)";
+        outFilePath = inFilePath;
+        outFilePath.replace_extension("hyb");
         break;
     }
 
@@ -850,7 +933,7 @@ int main(int argc, char ** argv)
 
         try
         {
-            Hybris::File hybrisFile = makeHybrisFile(scene);
+            Hybris::FileWithHitbox hybrisFile = makeHybrisFileWithHitbox(scene);
 
             std::ofstream ofile(outFilePath.c_str(), std::ios::binary | std::ios::trunc);
             Hybris::write(ofile, hybrisFile);
@@ -871,6 +954,11 @@ int main(int argc, char ** argv)
         catch (std::runtime_error * e)
         {
             printf("Conversion failed: %s\n", e->what());
+            system("pause");
+        }
+        catch (const char * e)
+        {
+            printf("Conversion failed: %s\n", e);
             system("pause");
         }
     }

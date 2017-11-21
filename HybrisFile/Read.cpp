@@ -75,10 +75,23 @@ void Hybris::read(std::ifstream & ifile, Joint & joint)
     read(ifile, joint.invBindTransform);
 }
 
-void Hybris::read(std::ifstream & ifile, size_t & size)
+void Hybris::read(std::ifstream & ifile, Hitbox & data)
 {
-    ifile.read((char*)&size, sizeof(size));
+    read(ifile, data.position);
+    read(ifile, data.rotation);
+    read(ifile, data.halfSize);
 }
+
+void Hybris::read(std::ifstream & ifile, FileWithHitbox & data)
+{
+    read(ifile, (File&)data);
+    read(ifile, data.hitboxes);
+}
+
+//void Hybris::read(std::ifstream & ifile, size_t & size)
+//{
+//    ifile.read((char*)&size, sizeof(size));
+//}
 
 void Hybris::read(std::ifstream & ifile, time_t & time)
 {

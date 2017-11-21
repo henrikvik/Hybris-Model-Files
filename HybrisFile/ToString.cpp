@@ -73,7 +73,7 @@ std::string Hybris::toString(Animation & animation)
     str += "\n" + pad.str() + "{\n";
     pad.inc();
     str += pad.str() + "\"Name\": " + toString(animation.name) + ",\n";
-    str += pad.str() + "\"Duration\": " + toString(animation.duration) + ",\n";
+    str += pad.str() + "\"Duration\": " + toString(animation.duration) + "\n";
     str += pad.str() + "\"KeyFrames\":" + toString(animation.keyFrames) + "\n";
     pad.dec();
     str += pad.str() + "}";
@@ -118,12 +118,12 @@ std::string Hybris::toString(Joint & joint)
     return str;
 }
 
-std::string Hybris::toString(size_t & size)
-{
-    std::stringstream ss; SS_SET(ss);
-    ss << size;
-    return ss.str();
-}
+//std::string Hybris::toString(size_t & size)
+//{
+//    std::stringstream ss; SS_SET(ss);
+//    ss << size;
+//    return ss.str();
+//}
 
 std::string Hybris::toString(time_t & time)
 {

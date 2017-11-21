@@ -10,6 +10,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FbxToHybris", "FbxToHybris\
 		{20E2DAF6-F972-4040-BEEB-16C9B5527AA3} = {20E2DAF6-F972-4040-BEEB-16C9B5527AA3}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FbxSceneToTOML", "FbxSceneToTOML\FbxSceneToTOML.vcxproj", "{98DDEECD-DDF9-48A6-9937-1FBA25943735}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +36,14 @@ Global
 		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Release|x64.Build.0 = Release|x64
 		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Release|x86.ActiveCfg = Release|Win32
 		{8E412FC7-16C8-4919-8D57-CCF3603CE5F9}.Release|x86.Build.0 = Release|Win32
+		{98DDEECD-DDF9-48A6-9937-1FBA25943735}.Debug|x64.ActiveCfg = Debug|x64
+		{98DDEECD-DDF9-48A6-9937-1FBA25943735}.Debug|x64.Build.0 = Debug|x64
+		{98DDEECD-DDF9-48A6-9937-1FBA25943735}.Debug|x86.ActiveCfg = Debug|Win32
+		{98DDEECD-DDF9-48A6-9937-1FBA25943735}.Debug|x86.Build.0 = Debug|Win32
+		{98DDEECD-DDF9-48A6-9937-1FBA25943735}.Release|x64.ActiveCfg = Release|x64
+		{98DDEECD-DDF9-48A6-9937-1FBA25943735}.Release|x64.Build.0 = Release|x64
+		{98DDEECD-DDF9-48A6-9937-1FBA25943735}.Release|x86.ActiveCfg = Release|Win32
+		{98DDEECD-DDF9-48A6-9937-1FBA25943735}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
